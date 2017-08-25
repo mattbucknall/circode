@@ -1,0 +1,162 @@
+#!/usr/bin/env python3
+
+# MIT License
+#
+# Copyright (c) 2017 Matthew T. Bucknall
+#
+# Permission is hereby granted, free of charge, to any person obtaining a copy
+# of this software and associated documentation files (the "Software"), to deal
+# in the Software without restriction, including without limitation the rights
+# to use, copy, modify, merge, publish, distribute, sublicense, and/or sell
+# copies of the Software, and to permit persons to whom the Software is
+# furnished to do so, subject to the following conditions:
+#
+# The above copyright notice and this permission notice shall be included in all
+# copies or substantial portions of the Software.
+#
+# THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR
+# IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF MERCHANTABILITY,
+# FITNESS FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT. IN NO EVENT SHALL THE
+# AUTHORS OR COPYRIGHT HOLDERS BE LIABLE FOR ANY CLAIM, DAMAGES OR OTHER
+# LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING FROM,
+# OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE
+# SOFTWARE.
+
+import os
+import cairo
+import math
+import sys
+
+
+class FatalError(Exception):
+    def __init__(self, message):
+        self._message = message
+
+    def __str__(self):
+        return str(self._message)
+
+
+def drawCircode(surface, code, crosshair = True, black_bg = False):
+    ctx = cairo.Context(surface)
+    ctx.scale(surface.get_width(), surface.get_height())
+    ctx.set_source_rgb(0.0, 0.0, 0.0)
+    
+    if black_bg:
+        ctx.rectangle(0.0, 0.0, 1.0, 1.0)
+        ctx.fill()
+    
+    ctx.arc(0.5, 0.5, 0.499, 0.0, math.pi * 2.0)
+    ctx.arc_negative(0.5, 0.5, 0.333, math.pi * 2.0, 0.0)
+    ctx.fill()
+    ctx.set_source_rgb(1.0, 1.0, 1.0)
+
+    bits = code | (code << 6)
+    bits = (bits << 1) ^ 0x1F81
+
+    ctx.set_source_rgb(1.0, 1.0, 1.0)
+
+    for t in range(0, 24):
+        if bits & 1:
+            a1 = (math.pi * t / 12.0)
+            a2 = (math.pi * (t + 1.0) / 12.0) + 0.02
+            ctx.arc(0.5, 0.5, 0.471, a1, a2)
+            ctx.arc_negative(0.5, 0.5, 0.361, a2, a1)
+            ctx.fill()
+
+        bits = bits >> 1
+
+    ctx.set_line_width(0.0025)
+    ctx.set_source_rgb(0.0, 0.0, 0.0)
+    ctx.arc(0.5, 0.5, 0.499, 0.0, math.pi * 2.0)
+    ctx.arc_negative(0.5, 0.5, 0.471, math.pi * 2.0, 0.0)
+    ctx.fill_preserve()
+    ctx.stroke()
+    ctx.arc(0.5, 0.5, 0.361, 0.0, math.pi * 2.0)
+    ctx.arc_negative(0.5, 0.5, 0.333, math.pi * 2.0, 0.0)
+    ctx.fill_preserve()
+    ctx.stroke()
+
+    if crosshair:
+        if black_bg:
+            ctx.set_source_rgb(1.0, 1.0, 1.0)
+        else:
+            ctx.set_source_rgb(0.0, 0.0, 0.0)
+        
+        ctx.set_line_width(0.005)
+        ctx.move_to(0.5, 0.3)
+        ctx.line_to(0.5, 0.7)
+        ctx.stroke()
+        ctx.move_to(0.3, 0.5)
+        ctx.line_to(0.7, 0.5)
+        ctx.stroke()
+
+
+def print_usage():
+    print(
+        "Usage: {0} <output-png> <code> [size] [background]\n\n"
+        "Generates Circode containing given value and outputs it to\n"
+        "a png file.\n\n"
+        "  <output-png>     Path to output .png file\n\n"
+        "  <code>           Number to encode (0-63)\n\n"
+        "  [size]           Diameter of circode in pixels (optional,\n"
+        "                   default = 1024).\n\n"
+        "  [background]     If 0, background will be transparent, if\n"
+        "                   1, background will be black (optional,\n"
+        "                   default = 0)\n"
+        .format(os.path.basename(__file__))
+    )
+
+
+def main(args=None):
+    if args is None:
+        args = sys.argv
+
+    if len(args) < 3:
+        print_usage()
+        sys.exit(0)
+
+    output_path = args[1]
+
+    try:
+        code = int(args[2])
+    except ValueError as err:
+        raise FatalError("Invalid code: {0}".format(err))
+
+    if code < 0 or code > 63:
+        raise FatalError("Code must be between 0 and 63 inclusive")
+
+    if len(args) > 3:
+        try:
+            output_size = int(args[3])
+        except ValueError as err:
+            raise FatalError("Invalid size: {0}".format(err))
+
+        if output_size < 64:
+            raise FatalError("Invalid size: Must be at least 64")
+    else:
+        output_size = 1024
+
+    if len(args) > 4:
+        try:
+            black = int(args[4])
+        except ValueError as err:
+            raise FatalError("Invalid background attribute: {0}".format(err))
+
+        if black == 0:
+            black = False
+        else:
+            black = True
+    else:
+        black = 0
+
+    circode = cairo.ImageSurface(cairo.FORMAT_ARGB32, output_size, output_size)
+    drawCircode(circode, code, True, black)
+    circode.write_to_png(output_path)
+
+
+try:
+    if __name__ == "__main__":
+        main()
+except FatalError as err:
+    print("Fatal error: {0}".format(err))
+    exit(1)
