@@ -6,13 +6,14 @@ that their type could be quickly established by the machine's training camera an
 vision processing system.
 
 ## Format
+![Example Circode](https://github.com/mattbucknall/circode/raw/master/example.png)
 
 A circode consits of 2 black rings (an inner ring and an outer ring). The inner ring's
 diameter must be no larger than 67% and no less than 50% of the outer ring's diameter.
 The area between the two rings is evenly divided into 20 segments. Black segments are
 used to represent '0' bits and white segments are used to represent '1' bits. The 6-bit
-value to be encoded is prefixed with seven '0' bits and one '1' bit. The value is
-suffixed with the ones' complement of itself.
+value to be encoded is prefixed with seven '0' bits followed by one '1' bit. The value
+is suffixed with the ones' complement of itself.
 
 ## Usage
 
