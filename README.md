@@ -13,7 +13,8 @@ diameter must be no larger than 67% and no less than 50% of the outer ring's dia
 The area between the two rings is evenly divided into 20 segments. Black segments are
 used to represent '0' bits and white segments are used to represent '1' bits. The 6-bit
 value to be encoded is prefixed with seven '0' bits followed by one '1' bit. The value
-is suffixed with the ones' complement of itself.
+is suffixed with the ones' complement of itself. Bits are presented in clockwise order
+starting (after the preamble) with the encoded value's least significant bit.
 
 ## Usage
 
