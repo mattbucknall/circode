@@ -33,3 +33,6 @@ circode <output-png> <code> [size] [background]
                    1, background will be black (optional,
                    default = 0)
 ```
+*Note:* The output includes a cross-hair at the center of the circode. This does not
+form part of the circode. It is provided as an alignment aid in case the circode is to
+be cutout with a laser cutter (or some other cutting tool).
