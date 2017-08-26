@@ -18,7 +18,7 @@ starting (after the preamble) with the encoded value's least significant bit.
 
 ## Usage
 
-The script provided in this repository generates a circode with pecified parameters and
+The script provided in this repository generates a circode with specified parameters and
 outputs it as a .png file.
 
 ```
